@@ -82,6 +82,7 @@ describe("Given I am connected as an employee", () => {
       expect(inputFile.files[0].name).toBe("picture.png");
     });
 
+    // POST
     test("Then it should create a new bill", () => {
       const onNavigate = (pathname) => {
         document.body.innerHTML = ROUTES({ pathname });
@@ -135,7 +136,43 @@ describe("Given I am connected as an employee", () => {
         expect(err).toMatch('error');
       }
     })
-  })  
+  })
+
+  describe("When an error occurs on API", () => {
+    test("POST New Bill and fails with 404 message error", async () => {
+      mockStore.bills.mockImplementationOnce(() => {
+        return {
+          list : () =>  {
+            return Promise.reject(new Error("Erreur 404"))
+          }
+        }})
+
+      window.onNavigate(ROUTES_PATH.Bills)
+
+      await new Promise(process.nextTick);
+      const message = await screen.getByText(/Erreur 404/)
+
+      // expected values
+      expect(message).toBeTruthy()
+    })
+
+    test("POST New Bill and fails with 500 message error", async () => {
+      mockStore.bills.mockImplementationOnce(() => {
+        return {
+          list : () =>  {
+            return Promise.reject(new Error("Erreur 500"))
+          }
+        }})
+
+      window.onNavigate(ROUTES_PATH.Bills)
+
+      await new Promise(process.nextTick);
+      const message = await screen.getByText(/Erreur 500/)
+
+      // expected values
+      expect(message).toBeTruthy()
+    })
+  })
 });
 
 jest.mock("../app/store", () => mockStore);
